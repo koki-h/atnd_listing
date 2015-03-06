@@ -1,0 +1,2 @@
+# atnd_listing
+ATNDに登録した人のTwitterアカウントをまとめて自分のリストに追加する
