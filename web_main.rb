@@ -4,6 +4,11 @@ require 'omniauth-twitter'
 require './lib/atnd.rb'
 require './lib/twitter.rb'
 require "pp"
+# 以下はomniauth-twitterで予約されたパス
+#
+# /auth/twitter           Twitterの認証ページヘリダイレクトさせるためのパス（作成の必要なし）
+# /auth/twitter/callback  Twitterでの認証後にコールバックされるパス（アクセストークンの取得等を行う）
+# /auth/failure           Twitterでの認証が失敗した場合にリダイレクトされるパス（失敗した旨をユーザへ伝えるメッセージ表示とか）
 
 def consumer_credential(source)
   auth = []
@@ -25,36 +30,27 @@ configure do
 end
 
 helpers do
-  # current_userは認証されたユーザーのことです
   def current_user
     !session[:uid].nil?
   end
 end
 
 before do
-  # /auth/からパスが始まる時はTwitterへリダイレクトしたいわけではないので
   pass if request.path_info =~ /^\/auth\//
-
-  # /auth/twitterはOmniAuthが使います
-  # /auth/twitterに当てはまる場合、Twitterへリダイレクトします。
   redirect to('/auth/twitter') unless current_user
 end
+
 get '/auth/twitter/callback' do
-  # ひょっとするとデータベースにも登録したくなるかもしれません。
-  pp env['omniauth.auth']['access_token']
   session[:access_token] = env['omniauth.auth']['extra']['access_token']
   session[:uid] = env['omniauth.auth']['uid']
-  # これはあなたのアプリケーションへユーザーを戻すメソッドです
   redirect to('/')
 end
 
 get '/auth/failure' do
-  # OmniAuthはなにか問題が起こると/auth/failureへリダイレクトします。
-  # ここにあなたは何らかの処理を書くべきでしょう
+  '理由はわかりませんが認証できませんでした。ごめんね。'
 end
 
 get '/' do
-  pp session[:access_token]
   'Hello omniauth-twitter!'
 end
 
